@@ -1,0 +1,24 @@
+﻿# Core
+google-genai
+langgraph
+langchain-core
+
+# Web scraping
+requests
+beautifulsoup4
+lxml
+
+# API
+fastapi
+uvicorn[standard]
+
+# Data validation
+pydantic
+
+# Utilities
+python-dotenv
+httpx
+asyncpg
+
+# Testing
+pytest
