@@ -31,16 +31,17 @@ async def run_research_job(job_id: str, request: ResearchRequest) -> None:
 
     try:
         result = await _run_graph(state)
+        has_final_report = bool(result.get("final_report"))
 
         status = str(result.get("status", JobStatus.COMPLETE.value))
-        if status == JobStatus.ERROR.value:
+        if status == JobStatus.ERROR.value and not has_final_report:
             await job_manager.set_job_error(
                 job_id,
                 str(result.get("error_message") or "Research graph returned an error status."),
             )
             return
 
-        if result.get("error_message"):
+        if result.get("error_message") and not has_final_report:
             await job_manager.set_job_error(job_id, str(result.get("error_message")))
             return
 

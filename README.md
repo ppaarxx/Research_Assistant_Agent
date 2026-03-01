@@ -13,6 +13,7 @@ Autonomous research pipeline built with Python, LangGraph, Gemini 2.5 Flash, Fas
   - `job_source_summaries`
   - `job_reports`
 - `/research/{job_id}` now includes live stage metadata: `current_stage`, `updated_at`.
+- `job_reports.report_content` is stored as a JSON envelope (`schema_version`, `output_format`, `content_type`, `content`, `generated_at`) so web/mobile clients can render consistently.
 
 ## Project Structure
 

@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 from datetime import datetime
+import json
 from typing import Any
 from uuid import uuid4
 
@@ -41,14 +42,7 @@ class JobManager:
         await repository.set_job_complete(job_id)
 
     async def finalize_job_from_state(self, job_id: str, state: dict[str, Any]) -> None:
-        report = state.get("final_report")
-        if report:
-            await repository.upsert_report(
-                job_id=job_id,
-                report_content=str(report),
-                sources_used=len(state.get("summaries", [])),
-                iterations_taken=int(state.get("iteration", 0) or 0),
-            )
+        # Compiler node persists the final report; this method only finalizes job status.
         await repository.set_job_complete(job_id)
 
     async def get_job_overview(self, job_id: str) -> dict[str, Any] | None:
@@ -71,6 +65,18 @@ class JobManager:
         else:
             updated_at_value = str(updated_at) if updated_at else None
 
+        report_content = row.get("report_content")
+        report_value: str | None = str(report_content) if report_content is not None else None
+        if isinstance(report_content, str):
+            try:
+                payload = json.loads(report_content)
+                if isinstance(payload, dict) and "content" in payload:
+                    content = payload.get("content")
+                    if isinstance(content, str):
+                        report_value = content
+            except json.JSONDecodeError:
+                report_value = report_content
+
         return {
             "job_id": row.get("job_id"),
             "topic": row.get("topic"),
@@ -78,7 +84,7 @@ class JobManager:
             "current_stage": row.get("current_stage"),
             "iteration": row.get("iteration"),
             "updated_at": updated_at_value,
-            "report": row.get("report_content"),
+            "report": report_value,
             "sources_used": row.get("sources_used"),
             "iterations_taken": row.get("iterations_taken"),
             "error": row.get("error_message"),

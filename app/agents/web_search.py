@@ -101,10 +101,7 @@ async def web_search_node(state: ResearchState) -> dict[str, Any]:
         )
 
         if response is None:
-            return {
-                "search_results": existing,
-                "error_message": "GEMINI_API_KEY is missing. Add it to .env before running research jobs.",
-            }
+            break
 
         grounded = _extract_grounded_results(response)
 

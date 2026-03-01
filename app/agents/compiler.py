@@ -1,6 +1,7 @@
 ﻿from __future__ import annotations
 
 import json
+from datetime import datetime, timezone
 from typing import Any
 
 from app.agents.gemini_client import extract_response_text, generate_content_async
@@ -137,6 +138,25 @@ async def _compile_with_gemini(state: ResearchState, summaries: list[dict[str, A
     return text.strip() if text else None
 
 
+def _build_report_storage_payload(*, topic: str, output_format: str, report: str) -> str:
+    payload: dict[str, Any] = {
+        "schema_version": "1.0",
+        "topic": topic,
+        "output_format": output_format,
+        "content_type": "text/markdown" if output_format == "markdown" else "application/json",
+        "content": report,
+        "generated_at": datetime.now(timezone.utc).isoformat(),
+    }
+
+    if output_format == "json":
+        try:
+            payload["content_json"] = json.loads(report)
+        except json.JSONDecodeError:
+            payload["content_json"] = None
+
+    return json.dumps(payload, ensure_ascii=True)
+
+
 async def compiler_node(state: ResearchState) -> dict[str, Any]:
     await repository.set_stage_and_iteration(
         job_id=state["job_id"],
@@ -158,9 +178,15 @@ async def compiler_node(state: ResearchState) -> dict[str, Any]:
         else:
             report = _local_compile_markdown(state["topic"], summaries)
 
+    report_payload = _build_report_storage_payload(
+        topic=state["topic"],
+        output_format=state["output_format"],
+        report=report,
+    )
+
     await repository.upsert_report(
         job_id=state["job_id"],
-        report_content=report,
+        report_content=report_payload,
         sources_used=len(summaries),
         iterations_taken=int(state.get("iteration", 0) or 0),
     )
