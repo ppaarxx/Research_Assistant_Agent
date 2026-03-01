@@ -71,7 +71,7 @@ async def _summarize_with_gemini(topic: str, item: dict[str, Any]) -> dict[str, 
     config = {
         "response_mime_type": "application/json",
         "response_json_schema": SourceSummarySchema.model_json_schema(),
-        "temperature": 0.1,
+        "temperature": 1.0,
     }
 
     response = await generate_content_async(

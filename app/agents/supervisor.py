@@ -192,7 +192,7 @@ async def supervisor_node(state: ResearchState) -> dict[str, Any]:
         config = types.GenerateContentConfig(
             tools=[types.Tool(function_declarations=[route_to_agent_fn])],
             thinking_config=types.ThinkingConfig(thinking_budget=settings.thinking_budget),
-            temperature=0.2,
+            temperature=1.0,
         )
 
         prompt = _build_supervisor_prompt(state)

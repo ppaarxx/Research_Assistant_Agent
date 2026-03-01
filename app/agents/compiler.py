@@ -128,7 +128,7 @@ async def _compile_with_gemini(state: ResearchState, summaries: list[dict[str, A
     response = await generate_content_async(
         model=settings.worker_model,
         contents=prompt,
-        config={"temperature": 0.2},
+        config={"temperature": 1.0},
     )
 
     if response is None:
