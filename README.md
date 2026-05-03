@@ -35,41 +35,116 @@ requirements.txt
 .env.example
 ```
 
-## Setup
+## Environment Variables
+
+Copy `.env.example` to `.env` and fill in your values:
+
+```bash
+cp .env.example .env
+```
+
+`.env` reference:
+
+```dotenv
+# Required
+GEMINI_API_KEY=your-gemini-api-key-here
+
+# Database (use these exact values when running via Docker)
+DATABASE_URL=postgresql://postgres:Parth%40321@db:5432/research_assistant_agent
+DATABASE_ADMIN_URL=postgresql://postgres:Parth%40321@db:5432/postgres
+DATABASE_NAME=research_assistant_agent
+
+# Tuning
+MAX_ITERATIONS=10
+MAX_SOURCES=10
+REQUEST_TIMEOUT=900
+THINKING_BUDGET=10000
+
+# Server
+API_HOST=0.0.0.0
+API_PORT=8000
+
+# Models
+SUPERVISOR_MODEL=gemini-2.5-flash
+WORKER_MODEL=gemini-2.5-flash
+```
+
+> **Note:** When running locally (without Docker), change the hostname in `DATABASE_URL` and `DATABASE_ADMIN_URL` from `db` to `localhost`.
+
+---
+
+## Docker
+
+### Run
+
+```bash
+docker compose up --build -d
+```
+
+This starts two containers:
+- `research-assistant-api` — FastAPI app on port `8000`
+- `research-assistant-db` — PostgreSQL 16
+
+The API waits for the database health check to pass before starting.
+
+### View logs
+
+```bash
+# All services
+docker compose logs -f
+
+# API only
+docker compose logs -f api
+```
+
+### Stop
+
+```bash
+docker compose stop
+```
+
+### Stop and remove containers
+
+```bash
+docker compose down
+```
+
+### Stop, remove containers, and delete the database volume
+
+```bash
+docker compose down -v
+rm -rf ./postgres_data
+```
+
+> ⚠️ This permanently deletes all stored research jobs and reports.
+
+---
+
+## Local Setup (without Docker)
 
 ```bash
 python -m venv venv
 # Windows
 venv\Scripts\activate
 # Linux/macOS
-# source venv/bin/activate
+source venv/bin/activate
 
 pip install -r requirements.txt
-cp .env.example .env
 ```
 
-Set required env values in `.env`:
-
-- `GEMINI_API_KEY`
-- `DATABASE_ADMIN_URL`
-- `DATABASE_URL`
-- Optional: `DATABASE_NAME` (defaults to `research_assistant_agent`)
-
-## Database Bootstrap
-
-Run one-time (or safely re-run):
+Update `.env` to use `localhost` instead of `db` for the database host, then bootstrap the schema:
 
 ```bash
 python -m app.db.init_db
 ```
 
-At app startup, DB bootstrap and pool initialization also run automatically.
-
-## Run
+### Run
 
 ```bash
 uvicorn app.main:app --reload --port 8000
 ```
+
+---
 
 ## API
 
@@ -97,6 +172,8 @@ curl http://127.0.0.1:8000/research/{job_id}
 ```bash
 curl http://127.0.0.1:8000/research/{job_id}/report
 ```
+
+---
 
 ## Live SQL Inspection
 
